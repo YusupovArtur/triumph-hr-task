@@ -50,7 +50,7 @@ tpl.innerHTML = `
  * ```
  * ```typescript
  * const bufferZone = document.querySelector('buffer-zone') as BufferZone;
- * bufferZone.data = [
+ * bufferZone._data = [
  *   { points: [[10, 10], [20, 20], [10, 20]], fill: 'lightblue', stroke: 'blue' },
  *   { points: [[30, 30], [40, 40], [30, 40]], fill: 'lightgreen', stroke: 'green' }
  * ];

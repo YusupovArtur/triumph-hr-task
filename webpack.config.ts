@@ -3,6 +3,7 @@ import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { Configuration as DevServerConfiguration } from 'webpack-dev-server';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import CssMinimizerPlugin from 'css-minimizer-webpack-plugin'; // Новый импорт
 
 interface EnvOptions {
   mode: 'production' | 'development';
@@ -56,6 +57,14 @@ export default (env: EnvOptions) => {
           open: true,
         }
       : undefined,
+    optimization: {
+      // Новый раздел: минификация только в prod
+      minimize: !isDev, // Включаем минимизацию только в production
+      minimizer: [
+        '...', // '...' — это специальный синтаксис webpack для сохранения дефолтного минимизатора JS (Terser)
+        new CssMinimizerPlugin(), // Минимизатор для CSS
+      ],
+    },
   };
 
   return config;

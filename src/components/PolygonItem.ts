@@ -52,7 +52,7 @@ tpl.innerHTML = `
  * ```
  * ```typescript
  * const polygonItem = document.querySelector('polygon-item') as PolygonItem;
- * polygonItem.data = { points: [[10, 10], [20, 20], [10, 20]], fill: 'lightblue', stroke: 'blue' };
+ * polygonItem._data = { points: [[10, 10], [20, 20], [10, 20]], fill: 'lightblue', stroke: 'blue' };
  * polygonItem.dragstartCallback = () => console.log('Drag started');
  * ```
  */

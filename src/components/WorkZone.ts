@@ -45,7 +45,7 @@ tpl.innerHTML = `
  * ```
  * ```typescript
  * const workZone = document.querySelector('work-zone') as WorkZone;
- * workZone.data = [
+ * workZone._data = [
  *   { points: [[10, 10], [20, 20], [10, 20]], fill: 'lightblue', stroke: 'blue' },
  *   { points: [[30, 30], [40, 40], [30, 40]], fill: 'lightgreen', stroke: 'green' }
  * ];
@@ -77,16 +77,10 @@ export class WorkZone extends Zone {
   private isDragging: boolean = false;
 
   /**
-   * The last recorded mouse X-coordinate during dragging.
+   * The last recorded mouse coordinates during dragging.
    * @private
    */
-  private lastMouseX: number = 0;
-
-  /**
-   * The last recorded mouse Y-coordinate during dragging.
-   * @private
-   */
-  private lastMouseY: number = 0;
+  private lastCoords: { x: number; y: number } = { x: 0, y: 0 };
 
   /**
    * Initializes the component, sets up Shadow DOM, and attaches event listeners for
@@ -183,14 +177,13 @@ export class WorkZone extends Zone {
   private handleMouseMove(event: MouseEvent) {
     if (!this.isDragging) return;
 
-    const dx = event.clientX - this.lastMouseX;
-    const dy = event.clientY - this.lastMouseY;
+    const dx = event.clientX - this.lastCoords.x;
+    const dy = event.clientY - this.lastCoords.y;
 
     this.delta = moveCoordinates(this._svg.getBoundingClientRect(), this.delta.x, this.delta.y, this.scale, dx, dy);
     this.updateViewBox();
 
-    this.lastMouseX = event.clientX;
-    this.lastMouseY = event.clientY;
+    this.lastCoords = { x: event.clientX, y: event.clientY };
   }
 
   /**
@@ -202,8 +195,7 @@ export class WorkZone extends Zone {
    */
   private handleMouseDown(event: MouseEvent) {
     this.isDragging = true;
-    this.lastMouseX = event.clientX;
-    this.lastMouseY = event.clientY;
+    this.lastCoords = { x: event.clientX, y: event.clientY };
     this._svg.style.cursor = 'grabbing';
   }
 

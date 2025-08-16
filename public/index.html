@@ -8,23 +8,26 @@
 <body>
 <div class="w-screen h-screen flex flex-col items-center justify-center bg-gray-300 gap-2">
   <div class="w-full max-w-lg mx-auto flex justify-between items-center p-3 bg-gray-100 rounded-lg shadow">
-    <button
-      id="create-btn"
-      class="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 active:bg-blue-900 cursor-pointer transition">
-      Создать
-    </button>
+    <button-primary id="create-btn">
+      <icon-arrow-repeat></icon-arrow-repeat>
+      <span class="ms-1">
+        Создать
+      </span>
+    </button-primary>
 
     <div class="flex space-x-4">
-      <button
-        id="save-btn"
-        class="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 active:bg-blue-900 cursor-pointer transition">
-        Сохранить
-      </button>
-      <button
-        id="clear-btn"
-        class="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 active:bg-blue-900 cursor-pointer transition">
-        Сбросить
-      </button>
+      <button-primary id="save-btn">
+        <icon-save></icon-save>
+        <span class="ms-1">
+          Сохранить
+        </span>
+      </button-primary>
+      <button-primary id="clear-btn">
+        <icon-clear></icon-clear>
+        <span class="ms-1">
+          Очистить
+        </span>
+      </button-primary>
     </div>
   </div>
   <buffer-zone></buffer-zone>

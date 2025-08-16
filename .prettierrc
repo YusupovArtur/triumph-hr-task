@@ -8,6 +8,7 @@
   "tabWidth": 2,
   "arrowParens": "always",
   "endOfLine": "lf",
+  "tailwindStylesheet": "./src/style/style.css",
   "plugins": [
     "prettier-plugin-tailwindcss"
   ]

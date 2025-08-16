@@ -2,6 +2,7 @@ import { PolygonData } from '../types/PolygonData';
 import { DataAction } from '../types/DataAction';
 import { DataSource } from '../types/DataSource';
 import { PolygonDragEventData } from '../types/PolygonDragEventData';
+import { POLYGON_CONFIG } from '../config';
 
 export class Zone extends HTMLElement {
   protected _data: PolygonData[] = [];
@@ -30,8 +31,10 @@ export class Zone extends HTMLElement {
             }),
           );
 
-          this._data.push(dropData.data);
-          this.render();
+          this._data.push({ ...dropData.data, strokeWidth: POLYGON_CONFIG.strokeWidth });
+          setTimeout(() => {
+            this.render();
+          });
         }
       } catch (error) {
         console.error('Drop event error', error);

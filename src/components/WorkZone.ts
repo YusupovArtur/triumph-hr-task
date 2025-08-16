@@ -1,8 +1,14 @@
 import { Zone } from '../classes/Zone';
 import { PolygonItem } from './PolygonItem';
-import { CANVAS_CONFIG, POLYGON_CONFIG } from '../config';
+import { getSVGOffset } from '../helpers/getSVGOffset';
+import { getTouchCoords } from '../helpers/vectors/getTouchCoords';
+import { getTouchOffsetAndScale } from '../helpers/getTouchOffsetAndScale';
+import { redrawAxes } from '../helpers/redrawAxes';
+import { rescaleCoordinates } from '../helpers/rescaleCoordinates';
 import { clamp } from '../helpers/clamp';
-import { moveCoordinates } from '../helpers/moveCoordinates';
+import { PolygonDragEventData } from '../types/PolygonDragEventData';
+import { Coords } from '../types/Coords';
+import { SVG_CONFIG, POLYGON_CONFIG } from '../config';
 
 /**
  * Template for the WorkZone web component, defining styles and structure.
@@ -13,18 +19,17 @@ tpl.innerHTML = `
   <style>
     :host {
       display: block;
-      width: fit-content;
+      max-width: 50rem;
+      width: 100%;
       height: fit-content;
-      border: 1px solid #aaa;
-      background-color: #FFFFFF;
-      overflow: auto;
     }
     svg {
       display: block;
       background-color: #f0f0f0;
       cursor: move;
-      width: ${CANVAS_CONFIG.width}px;
-      height: ${CANVAS_CONFIG.height}px;
+      max-width: 50rem;
+      width: 100%;
+      height: 50dvh;
     }
   </style>
   <div>
@@ -53,10 +58,24 @@ tpl.innerHTML = `
  */
 export class WorkZone extends Zone {
   /**
+   * Stores the current coordinates (x, y) for each polygon, indexed by polygon id.
+   * Used to position PolygonItem components in the SVG.
+   * @private
+   */
+  private polygonsCoordinates: Record<number, Coords> = {};
+
+  /**
+   * The group (<g>) element inside the SVG that contains axes/grid rendering.
+   * Updated on scale and panning changes.
+   * @private
+   */
+  private readonly _axesGroup: SVGGElement;
+
+  /**
    * The SVG element that displays the grid of polygons and handles zooming/panning.
    * @private
    */
-  private _svg: SVGSVGElement;
+  private readonly _svg: SVGSVGElement;
 
   /**
    * The current scale factor for zooming (1 = default, <1 = zoom in, >1 = zoom out).
@@ -68,7 +87,7 @@ export class WorkZone extends Zone {
    * The offset coordinates for panning the SVG viewBox.
    * @private
    */
-  private delta: { x: number; y: number } = { x: 0, y: 0 };
+  private offset: Coords = { x: 0, y: 0 };
 
   /**
    * Indicates whether the user is currently dragging the SVG for panning.
@@ -77,10 +96,13 @@ export class WorkZone extends Zone {
   private isDragging: boolean = false;
 
   /**
-   * The last recorded mouse coordinates during dragging.
+   * The last recorded mouse or touch coordinates during dragging.
    * @private
    */
-  private lastCoords: { x: number; y: number } = { x: 0, y: 0 };
+  private lastMouseCoords: Coords | null = null;
+  private lastTouchCoords: Coords | null = null;
+  private lastTouchCoords1: Coords | null = null;
+  private lastTouchCoords2: Coords | null = null;
 
   /**
    * Initializes the component, sets up Shadow DOM, and attaches event listeners for
@@ -90,11 +112,13 @@ export class WorkZone extends Zone {
   constructor() {
     super();
     this.dataSource = 'work-zone';
+
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.appendChild(tpl.content.cloneNode(true));
 
     this._svg = shadow.querySelector('svg')!;
-    this._svg.setAttribute('viewBox', `0 0 ${CANVAS_CONFIG.width} ${CANVAS_CONFIG.height}`);
+    const svgRect = this._svg.getBoundingClientRect();
+    this._svg.setAttribute('viewBox', `0 0 ${svgRect.width} ${svgRect.height}`);
 
     this._svg.addEventListener('wheel', this.handleWheel.bind(this));
     this._svg.addEventListener('mousedown', this.handleMouseDown.bind(this));
@@ -102,7 +126,42 @@ export class WorkZone extends Zone {
     this._svg.addEventListener('mouseup', this.handleMouseUp.bind(this));
     this._svg.addEventListener('mouseleave', this.handleMouseUp.bind(this));
 
+    this._axesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this._axesGroup.setAttribute('id', 'axes');
+    this._svg.appendChild(this._axesGroup);
+    this.updateViewBox();
+
     this.setDragAndDropHandler();
+    this.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const json = event.dataTransfer?.getData('text/plain');
+      if (!json) return;
+
+      try {
+        const dropData: PolygonDragEventData = JSON.parse(json);
+        const svgRect = this._svg.getBoundingClientRect();
+
+        let x = event.clientX - svgRect.left;
+        let y = event.clientY - svgRect.top;
+        const rescaledCoords = rescaleCoordinates(x, y, this._svg);
+        rescaledCoords.x -= (dropData.data.sizes.width + POLYGON_CONFIG.padding) / 2;
+        rescaledCoords.y -= (dropData.data.sizes.height + POLYGON_CONFIG.padding) / 2;
+        x = clamp(rescaledCoords.x, 0, svgRect.width - (dropData.data.sizes.width + POLYGON_CONFIG.padding));
+        y = clamp(rescaledCoords.y, 0, svgRect.height - (dropData.data.sizes.height + POLYGON_CONFIG.padding));
+        this.polygonsCoordinates[dropData.data.id] = { x, y };
+
+        if (dropData.dataSource === this.dataSource) {
+          this.data.sort((a, b) => (a.id === dropData.data.id ? 1 : b.id === dropData.data.id ? -1 : 0));
+          this.render();
+        }
+      } catch (error) {
+        console.error('Drop event error', error);
+      }
+    });
+
+    window.addEventListener('resize', this.updateViewBox.bind(this));
+    this._svg.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+    this._svg.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
   }
 
   /**
@@ -115,18 +174,14 @@ export class WorkZone extends Zone {
     while (this._svg.firstChild) {
       this._svg.removeChild(this._svg.firstChild);
     }
+    this._svg.appendChild(this._axesGroup);
 
-    const n = Math.floor(CANVAS_CONFIG.width / POLYGON_CONFIG.viewBox.width);
-
-    this._data.forEach((polygonData, index) => {
-      const offsetX = (index % n) * POLYGON_CONFIG.viewBox.width;
-      const offsetY = Math.floor(index / n) * POLYGON_CONFIG.viewBox.height;
-
+    this._data.forEach((polygonData) => {
       const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-      foreignObject.setAttribute('x', String(offsetX));
-      foreignObject.setAttribute('y', String(offsetY));
-      foreignObject.setAttribute('width', String(POLYGON_CONFIG.viewBox.width));
-      foreignObject.setAttribute('height', String(POLYGON_CONFIG.viewBox.height));
+      foreignObject.setAttribute('x', String(this.polygonsCoordinates[polygonData.id].x));
+      foreignObject.setAttribute('y', String(this.polygonsCoordinates[polygonData.id].y));
+      foreignObject.setAttribute('width', String(polygonData.sizes.width + POLYGON_CONFIG.padding));
+      foreignObject.setAttribute('height', String(polygonData.sizes.height + POLYGON_CONFIG.padding));
 
       const item = document.createElement('polygon-item') as PolygonItem;
       item.data = polygonData;
@@ -136,21 +191,20 @@ export class WorkZone extends Zone {
       foreignObject.appendChild(item);
       this._svg.appendChild(foreignObject);
     });
-
-    this.updateViewBox();
   }
 
   /**
-   * Updates the SVG viewBox based on the current scale and delta (panning offset).
-   * The viewBox is calculated to center the content and apply zoom.
+   * Updates the SVG viewBox based on the current scale (zoom) and offset (pan).
+   * Re-centers the content and redraws axes/grid.
    * @private
    */
   private updateViewBox() {
-    const x1 = (CANVAS_CONFIG.width / 2) * (1 - this.scale) + this.delta.x;
-    const width = CANVAS_CONFIG.width * this.scale;
-    const y1 = (CANVAS_CONFIG.height / 2) * (1 - this.scale) + this.delta.y;
-    const height = CANVAS_CONFIG.height * this.scale;
-    this._svg.setAttribute('viewBox', `${x1} ${y1} ${width} ${height}`);
+    const svgRect = this._svg.getBoundingClientRect();
+    const x1 = (svgRect.width / 2) * (1 - this.scale) + this.offset.x;
+    const y1 = (svgRect.height / 2) * (1 - this.scale) + this.offset.y;
+    this._svg.setAttribute('viewBox', `${x1} ${y1} ${svgRect.width * this.scale} ${svgRect.height * this.scale}`);
+
+    redrawAxes(this._svg, this._axesGroup, this.scale);
   }
 
   /**
@@ -162,28 +216,27 @@ export class WorkZone extends Zone {
   private handleWheel(event: WheelEvent) {
     event.preventDefault();
     const dZoom = -this.scale * 0.075 * Math.sign(event.deltaY);
-    this.scale = clamp(this.scale - dZoom, 0.1, 1);
+    this.scale = clamp(this.scale - dZoom, SVG_CONFIG.minScale, 1);
 
-    this.delta = moveCoordinates(this._svg.getBoundingClientRect(), this.delta.x, this.delta.y, this.scale, 0, 0);
+    this.offset = getSVGOffset(this._svg.getBoundingClientRect(), this.offset.x, this.offset.y, this.scale, 0, 0);
     this.updateViewBox();
   }
 
   /**
    * Handles mouse move events to pan the SVG viewBox during dragging.
-   * Updates delta based on mouse movement and refreshes the viewBox.
+   * Updates offset based on mouse movement and refreshes the viewBox.
    * @param event - The MouseEvent triggered by mouse movement.
    * @private
    */
   private handleMouseMove(event: MouseEvent) {
     if (!this.isDragging) return;
 
-    const dx = event.clientX - this.lastCoords.x;
-    const dy = event.clientY - this.lastCoords.y;
-
-    this.delta = moveCoordinates(this._svg.getBoundingClientRect(), this.delta.x, this.delta.y, this.scale, dx, dy);
+    const dx = event.clientX - this.lastMouseCoords.x;
+    const dy = event.clientY - this.lastMouseCoords.y;
+    this.offset = getSVGOffset(this._svg.getBoundingClientRect(), this.offset.x, this.offset.y, this.scale, dx, dy);
     this.updateViewBox();
 
-    this.lastCoords = { x: event.clientX, y: event.clientY };
+    this.lastMouseCoords = { x: event.clientX, y: event.clientY };
   }
 
   /**
@@ -195,7 +248,7 @@ export class WorkZone extends Zone {
    */
   private handleMouseDown(event: MouseEvent) {
     this.isDragging = true;
-    this.lastCoords = { x: event.clientX, y: event.clientY };
+    this.lastMouseCoords = { x: event.clientX, y: event.clientY };
     this._svg.style.cursor = 'grabbing';
   }
 
@@ -207,6 +260,48 @@ export class WorkZone extends Zone {
   private handleMouseUp() {
     this.isDragging = false;
     this._svg.style.cursor = 'move';
+  }
+
+  /**
+   * Handles touchmove events for panning (single touch) and pinch-to-zoom (multitouch).
+   * Prevents default scrolling, calculates new scale and offset, and updates viewBox.
+   * @param event - The TouchEvent containing one or two touch points.
+   * @private
+   */
+  private handleTouchMove(event: TouchEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    const newOffsetAndScale = getTouchOffsetAndScale(
+      this._svg.getBoundingClientRect(),
+      event,
+      this.offset,
+      this.scale,
+      this.lastTouchCoords,
+      this.lastTouchCoords1,
+      this.lastTouchCoords2,
+    );
+    if (newOffsetAndScale) {
+      this.scale = newOffsetAndScale.scale;
+      this.offset = newOffsetAndScale.offset;
+      this.updateViewBox();
+    }
+    if (event.touches.length === 1) {
+      this.lastTouchCoords = getTouchCoords(event.touches[0]);
+    } else if (event.touches.length === 2) {
+      this.lastTouchCoords1 = getTouchCoords(event.touches[0]);
+      this.lastTouchCoords2 = getTouchCoords(event.touches[1]);
+    }
+  }
+
+  /**
+   * Handles touchend events to reset stored touch coordinates
+   * when the gesture ends or fingers are lifted.
+   * @private
+   */
+  private handleTouchEnd() {
+    this.lastTouchCoords = null;
+    this.lastTouchCoords1 = null;
+    this.lastTouchCoords2 = null;
   }
 }
 

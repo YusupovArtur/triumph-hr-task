@@ -1,6 +1,5 @@
 import { Zone } from '../classes/Zone';
 import { PolygonItem } from './PolygonItem';
-import { BUFFER_ZONE_CONFIG } from '../config';
 
 /**
  * Template for the BufferZone web component, defining styles and structure.
@@ -17,9 +16,9 @@ tpl.innerHTML = `
     }
     :host {
       display: block;
-      max-width: 100vw;
-      width: ${BUFFER_ZONE_CONFIG.width}px;
-      height: ${BUFFER_ZONE_CONFIG.height}px;
+      max-width: 50rem;
+      width: 100%;
+      height: 25dvh;
       overflow: auto;
       border-radius: 16px;
       background-color: rgb(243, 244, 246);
@@ -29,7 +28,7 @@ tpl.innerHTML = `
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
-      align-items: flex-start;
+      align-items: center;
       align-content: flex-start;
       height: 100%;
     }

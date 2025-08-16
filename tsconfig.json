@@ -12,7 +12,9 @@
   },
   "ts-node": {
     "compilerOptions": {
-      "module": "CommonJS"
+      "module": "CommonJS",
+      "strict": true,
+      "strictNullChecks": true
     }
   }
 }

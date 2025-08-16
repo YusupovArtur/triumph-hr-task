@@ -59,9 +59,9 @@ tpl.innerHTML = `
 export class PolygonItem extends HTMLElement {
   /**
    * The polygon data containing points, fill, and stroke properties.
-   * @private
+   * @public
    */
-  private _data: PolygonData | null = null;
+  public _data: PolygonData | null = null;
 
   /**
    * The wrapper div element that contains the SVG and handles drag events.
@@ -107,13 +107,33 @@ export class PolygonItem extends HTMLElement {
       event.dataTransfer!.effectAllowed = 'move';
     });
 
-    // Prevent mousemove and mousedown events from bubbling to parent elements
     this._wrap.addEventListener('mousemove', (event: MouseEvent) => {
       event.stopPropagation();
     });
 
     this._wrap.addEventListener('mousedown', (event: MouseEvent) => {
       event.stopPropagation();
+    });
+
+    this._wrap.addEventListener('mouseenter', () => {
+      if (this._data.strokeWidth !== POLYGON_CONFIG.strokeWidthActive) {
+        this._data.strokeWidth = POLYGON_CONFIG.strokeWidthActive;
+        this.render();
+      }
+    });
+
+    this._wrap.addEventListener('mouseleave', () => {
+      if (this._data.strokeWidth !== POLYGON_CONFIG.strokeWidth) {
+        this._data.strokeWidth = POLYGON_CONFIG.strokeWidth;
+        this.render();
+      }
+    });
+
+    this.addEventListener('dragend', () => {
+      if (this._data.strokeWidth !== POLYGON_CONFIG.strokeWidth) {
+        this._data.strokeWidth = POLYGON_CONFIG.strokeWidth;
+        this.render();
+      }
     });
   }
 

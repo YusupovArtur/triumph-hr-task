@@ -8,7 +8,7 @@ import { rescaleCoordinates } from '../helpers/rescaleCoordinates';
 import { clamp } from '../helpers/clamp';
 import { PolygonDragEventData } from '../types/PolygonDragEventData';
 import { Coords } from '../types/Coords';
-import { SVG_CONFIG, POLYGON_CONFIG } from '../config';
+import { SVG_CONFIG, POLYGON_CONFIG, BG_COLOR } from '../config';
 
 /**
  * Template for the WorkZone web component, defining styles and structure.
@@ -25,7 +25,7 @@ tpl.innerHTML = `
     }
     svg {
       display: block;
-      background-color: #f0f0f0;
+      background-color: ${BG_COLOR};
       cursor: move;
       max-width: 50rem;
       width: 100%;

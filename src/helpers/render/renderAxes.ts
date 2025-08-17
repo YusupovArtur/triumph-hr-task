@@ -23,7 +23,7 @@ export function renderAxes(svg: SVGSVGElement, axesGroup: SVGGElement, scale: nu
   xAxis.setAttribute('y1', maxY.toString());
   xAxis.setAttribute('x2', maxX.toString());
   xAxis.setAttribute('y2', maxY.toString());
-  xAxis.setAttribute('stroke', 'black');
+  xAxis.setAttribute('stroke', AXES_CONFIG.strokeColor);
   xAxis.setAttribute('stroke-width', (2 * AXES_CONFIG.strokeWidth * scale).toString());
 
   const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -31,7 +31,7 @@ export function renderAxes(svg: SVGSVGElement, axesGroup: SVGGElement, scale: nu
   yAxis.setAttribute('y1', minY.toString());
   yAxis.setAttribute('x2', minX.toString());
   yAxis.setAttribute('y2', maxY.toString());
-  yAxis.setAttribute('stroke', 'black');
+  yAxis.setAttribute('stroke', AXES_CONFIG.strokeColor);
   yAxis.setAttribute('stroke-width', (2 * AXES_CONFIG.strokeWidth * scale).toString());
 
   for (let x = Math.ceil(minX / AXES_CONFIG.step) * AXES_CONFIG.step; x <= maxX; x += AXES_CONFIG.step) {
@@ -48,13 +48,14 @@ export function renderAxes(svg: SVGSVGElement, axesGroup: SVGGElement, scale: nu
     grid.setAttribute('y1', maxY.toString());
     grid.setAttribute('x2', x.toString());
     grid.setAttribute('y2', minY.toString());
-    grid.setAttribute('stroke', AXES_CONFIG.gridColor);
+    grid.setAttribute('stroke', AXES_CONFIG.strokeColor);
     grid.setAttribute('stroke-width', (AXES_CONFIG.gridWidth * scale).toString());
 
     const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     label.setAttribute('x', x ? x.toString() : (minX + AXES_CONFIG.labelMargin * scale).toString());
     label.setAttribute('y', (maxY - AXES_CONFIG.labelMargin * scale).toString());
     label.setAttribute('font-size', (AXES_CONFIG.fontSize * scale).toString());
+    label.setAttribute('fill', AXES_CONFIG.strokeColor);
     label.setAttribute('style', 'user-select: none;');
     label.textContent = x.toString();
 
@@ -81,13 +82,14 @@ export function renderAxes(svg: SVGSVGElement, axesGroup: SVGGElement, scale: nu
     grid.setAttribute('y1', yReversed.toString());
     grid.setAttribute('x2', maxX.toString());
     grid.setAttribute('y2', yReversed.toString());
-    grid.setAttribute('stroke', AXES_CONFIG.gridColor);
+    grid.setAttribute('stroke', AXES_CONFIG.strokeColor);
     grid.setAttribute('stroke-width', (AXES_CONFIG.gridWidth * scale).toString());
 
     const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     label.setAttribute('x', (minX + AXES_CONFIG.labelMargin * scale).toString());
     label.setAttribute('y', y ? yReversed.toString() : (maxY - AXES_CONFIG.labelMargin * scale).toString());
     label.setAttribute('font-size', (AXES_CONFIG.fontSize * scale).toString());
+    label.setAttribute('fill', AXES_CONFIG.strokeColor);
     label.setAttribute('style', 'user-select: none;');
     label.textContent = y.toString();
 

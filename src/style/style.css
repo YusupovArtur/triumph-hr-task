@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
+
 @layer components {
+  .btn {
+    @apply px-4 py-2 flex justify-between items-center rounded select-none disabled:opacity-80 disabled:cursor-not-allowed disabled:pointer-events-none transition
+  }
+
   .btn-primary {
-    @apply px-4 py-2 flex justify-between items-center bg-blue-700 text-white rounded select-none hover:bg-blue-800 active:bg-blue-900 disabled:bg-gray-400 disabled:opacity-80 disabled:cursor-not-allowed disabled:pointer-events-none transition;
+    @apply bg-blue-700 text-white hover:bg-blue-800 active:bg-blue-900 disabled:bg-gray-400;
   }
 }
 
@@ -32,4 +37,12 @@ html {
   html {
     font-size: 12px;
   }
+}
+
+.bg-gray {
+  background-color: #343a40
+}
+
+.bg-gray-body {
+  background-color: #2b3036;
 }

@@ -1,11 +1,11 @@
 export const POLYGON_CONFIG = {
   viewBox: {
-    width: 100,
-    height: 100,
+    width: 90,
+    height: 90,
   },
   polygonSidesRange: [4, 8],
   fill: '#A00',
-  stroke: '#111',
+  stroke: '#000',
   strokeWidth: 2,
   strokeWidthActive: 4,
   paddingShare: 0.08,
@@ -13,6 +13,8 @@ export const POLYGON_CONFIG = {
 };
 
 POLYGON_CONFIG.padding = Math.max(POLYGON_CONFIG.viewBox.width, POLYGON_CONFIG.viewBox.height) * POLYGON_CONFIG.paddingShare;
+
+export const BG_COLOR = '#1e2938';
 
 export const SVG_CONFIG = {
   width: POLYGON_CONFIG.viewBox.width * 8,
@@ -22,13 +24,12 @@ export const SVG_CONFIG = {
 
 export const AXES_CONFIG = {
   strokeWidth: 2,
-  gridWidth: 0.5,
+  gridWidth: 0.1,
   markLength: 12,
   fontSize: 10,
   labelMargin: 14,
   step: 50,
-  strokeColor: '#000',
-  gridColor: '#ccc',
+  strokeColor: '#ccc',
 };
 
 export const LOCAL_STORAGE_ITEM = 'data';

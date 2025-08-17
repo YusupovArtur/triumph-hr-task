@@ -1,5 +1,6 @@
 import { Zone } from '../classes/Zone';
 import { PolygonItem } from './PolygonItem';
+import { BG_COLOR } from '../config';
 
 /**
  * Template for the BufferZone web component, defining styles and structure.
@@ -20,14 +21,15 @@ tpl.innerHTML = `
       width: 100%;
       height: 25dvh;
       overflow: auto;
-      border-radius: 16px;
-      background-color: rgb(243, 244, 246);
+      border-radius: 1rem;
+      background-color: ${BG_COLOR};
       margin-bottom: 0.5rem;
     }
     .container {
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
+      padding: 0.5rem;
       align-items: center;
       align-content: flex-start;
       height: 100%;

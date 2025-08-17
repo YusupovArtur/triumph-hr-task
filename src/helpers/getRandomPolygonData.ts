@@ -7,7 +7,7 @@ function randomFloat(min: number, max: number): number {
   return Math.random() * (max - min) + min;
 }
 
-export function genRandomPolygonData(
+export function getRandomPolygonData(
   viewBox = POLYGON_CONFIG.viewBox,
   polygonSidesRange = POLYGON_CONFIG.polygonSidesRange,
   fill = POLYGON_CONFIG.fill,

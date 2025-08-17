@@ -1,4 +1,4 @@
-import { PolygonData } from '../types/PolygonData';
+import { PolygonData } from '../../types/PolygonData';
 
 export const renderPolygon = (data: PolygonData) => {
   const svgNS = 'http://www.w3.org/2000/svg';

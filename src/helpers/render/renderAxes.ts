@@ -1,4 +1,4 @@
-import { AXES_CONFIG } from '../config';
+import { AXES_CONFIG } from '../../config';
 
 /**
  * Redraws the axes and labels on the provided SVG group.
@@ -6,8 +6,7 @@ import { AXES_CONFIG } from '../config';
  * @param axesGroup - The SVG group element to contain the axes
  * @param scale - The current zoom scale for adjusting line thickness and text size
  */
-export function redrawAxes(svg: SVGSVGElement, axesGroup: SVGGElement, scale: number) {
-  // очищаем группу
+export function renderAxes(svg: SVGSVGElement, axesGroup: SVGGElement, scale: number) {
   while (axesGroup.firstChild) {
     axesGroup.removeChild(axesGroup.firstChild);
   }
@@ -59,9 +58,9 @@ export function redrawAxes(svg: SVGSVGElement, axesGroup: SVGGElement, scale: nu
     label.setAttribute('style', 'user-select: none;');
     label.textContent = x.toString();
 
-    axesGroup.appendChild(label);
-    axesGroup.appendChild(tick);
     axesGroup.appendChild(grid);
+    axesGroup.appendChild(tick);
+    axesGroup.appendChild(label);
   }
 
   const maxYReversed = rect.height - minY;
@@ -92,9 +91,9 @@ export function redrawAxes(svg: SVGSVGElement, axesGroup: SVGGElement, scale: nu
     label.setAttribute('style', 'user-select: none;');
     label.textContent = y.toString();
 
-    axesGroup.appendChild(label);
-    axesGroup.appendChild(tick);
     axesGroup.appendChild(grid);
+    axesGroup.appendChild(tick);
+    axesGroup.appendChild(label);
   }
 
   axesGroup.appendChild(xAxis);

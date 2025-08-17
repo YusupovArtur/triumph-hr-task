@@ -1,12 +1,12 @@
-import { getTouchCoords } from './vectors/getTouchCoords';
-import { abs } from './vectors/abs';
-import { getVector } from './vectors/getVector';
-import { dot } from './vectors/dot';
-import { multiply } from './vectors/multiply';
-import { clamp } from './clamp';
+import { getTouchCoords } from '../vectors/getTouchCoords';
+import { abs } from '../vectors/abs';
+import { getVector } from '../vectors/getVector';
+import { dot } from '../vectors/dot';
+import { multiply } from '../vectors/multiply';
+import { clamp } from '../clamp';
 import { getSVGOffset } from './getSVGOffset';
-import { Coords } from '../types/Coords';
-import { SVG_CONFIG } from '../config';
+import { Coords } from '../../types/Coords';
+import { SVG_CONFIG } from '../../config';
 
 export const getTouchOffsetAndScale = (
   SVGRect: DOMRect,

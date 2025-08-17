@@ -1,6 +1,6 @@
 import { PolygonData } from '../types/PolygonData';
 import { DataSource } from '../types/DataSource';
-import { renderSVG } from '../helpers/renderSVG';
+import { renderSVG } from '../helpers/render/renderSVG';
 import { POLYGON_CONFIG } from '../config';
 
 /**

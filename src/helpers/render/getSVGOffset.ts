@@ -1,5 +1,5 @@
-import { clamp } from './clamp';
-import { Coords } from '../types/Coords';
+import { clamp } from '../clamp';
+import { Coords } from '../../types/Coords';
 
 export const getSVGOffset = (SVGRect: DOMRect, x: number, y: number, scale: number, dx: number, dy: number): Coords => {
   const dx_rescale = -dx * scale;

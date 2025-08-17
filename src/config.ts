@@ -30,3 +30,5 @@ export const AXES_CONFIG = {
   strokeColor: '#000',
   gridColor: '#ccc',
 };
+
+export const LOCAL_STORAGE_ITEM = 'data';

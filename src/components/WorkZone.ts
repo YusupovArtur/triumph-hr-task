@@ -1,9 +1,9 @@
 import { Zone } from '../classes/Zone';
 import { PolygonItem } from './PolygonItem';
-import { getSVGOffset } from '../helpers/getSVGOffset';
+import { getSVGOffset } from '../helpers/render/getSVGOffset';
 import { getTouchCoords } from '../helpers/vectors/getTouchCoords';
-import { getTouchOffsetAndScale } from '../helpers/getTouchOffsetAndScale';
-import { redrawAxes } from '../helpers/redrawAxes';
+import { getTouchOffsetAndScale } from '../helpers/render/getTouchOffsetAndScale';
+import { renderAxes } from '../helpers/render/renderAxes';
 import { rescaleCoordinates } from '../helpers/rescaleCoordinates';
 import { clamp } from '../helpers/clamp';
 import { PolygonDragEventData } from '../types/PolygonDragEventData';
@@ -62,7 +62,7 @@ export class WorkZone extends Zone {
    * Used to position PolygonItem components in the SVG.
    * @private
    */
-  private polygonsCoordinates: Record<number, Coords> = {};
+  private _polygonsCoords: Record<number, Coords> = {};
 
   /**
    * The group (<g>) element inside the SVG that contains axes/grid rendering.
@@ -148,20 +148,33 @@ export class WorkZone extends Zone {
         rescaledCoords.y -= (dropData.data.sizes.height + POLYGON_CONFIG.padding) / 2;
         x = clamp(rescaledCoords.x, 0, svgRect.width - (dropData.data.sizes.width + POLYGON_CONFIG.padding));
         y = clamp(rescaledCoords.y, 0, svgRect.height - (dropData.data.sizes.height + POLYGON_CONFIG.padding));
-        this.polygonsCoordinates[dropData.data.id] = { x, y };
+        this._polygonsCoords[dropData.data.id] = { x, y };
 
         if (dropData.dataSource === this.dataSource) {
           this.data.sort((a, b) => (a.id === dropData.data.id ? 1 : b.id === dropData.data.id ? -1 : 0));
           this.render();
+          this.dispatchEvent(new CustomEvent('polygon-moved-inner'));
         }
       } catch (error) {
         console.error('Drop event error', error);
       }
     });
 
-    window.addEventListener('resize', this.updateViewBox.bind(this));
+    window.addEventListener('resize', () => {
+      this.updateViewBox.call(this);
+      this.render.call(this);
+    });
     this._svg.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
     this._svg.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+  }
+
+  get polygonsCoords() {
+    return this._polygonsCoords;
+  }
+
+  set polygonsCoords(value: Record<number, Coords>) {
+    this._polygonsCoords = value;
+    this.render();
   }
 
   /**
@@ -176,15 +189,20 @@ export class WorkZone extends Zone {
     }
     this._svg.appendChild(this._axesGroup);
 
-    this._data.forEach((polygonData) => {
+    const svgRect = this._svg.getBoundingClientRect();
+    this._data.forEach((data) => {
+      const coords: Coords = this._polygonsCoords[data.id] ?? { x: 0, y: 0 };
+      const x = clamp(coords.x, 0, svgRect.width - (data.sizes.width + POLYGON_CONFIG.padding));
+      const y = clamp(coords.y, 0, svgRect.height - (data.sizes.height + POLYGON_CONFIG.padding));
+
       const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-      foreignObject.setAttribute('x', String(this.polygonsCoordinates[polygonData.id].x));
-      foreignObject.setAttribute('y', String(this.polygonsCoordinates[polygonData.id].y));
-      foreignObject.setAttribute('width', String(polygonData.sizes.width + POLYGON_CONFIG.padding));
-      foreignObject.setAttribute('height', String(polygonData.sizes.height + POLYGON_CONFIG.padding));
+      foreignObject.setAttribute('x', String(x));
+      foreignObject.setAttribute('y', String(y));
+      foreignObject.setAttribute('width', String(data.sizes.width + POLYGON_CONFIG.padding));
+      foreignObject.setAttribute('height', String(data.sizes.height + POLYGON_CONFIG.padding));
 
       const item = document.createElement('polygon-item') as PolygonItem;
-      item.data = polygonData;
+      item.data = data;
       item.dragstartCallback = this.handleMouseUp.bind(this);
       item.dataSource = this.dataSource;
 
@@ -204,7 +222,7 @@ export class WorkZone extends Zone {
     const y1 = (svgRect.height / 2) * (1 - this.scale) + this.offset.y;
     this._svg.setAttribute('viewBox', `${x1} ${y1} ${svgRect.width * this.scale} ${svgRect.height * this.scale}`);
 
-    redrawAxes(this._svg, this._axesGroup, this.scale);
+    renderAxes(this._svg, this._axesGroup, this.scale);
   }
 
   /**

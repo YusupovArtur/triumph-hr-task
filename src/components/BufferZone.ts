@@ -82,7 +82,7 @@ export class BufferZone extends Zone {
    * @protected
    */
   protected render() {
-    this._container.innerHTML = ''; // Очищаем контейнер
+    this._container.innerHTML = '';
     this._data.forEach((polygonData) => {
       const item = document.createElement('polygon-item') as PolygonItem;
       item.data = polygonData;

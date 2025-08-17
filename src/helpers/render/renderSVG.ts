@@ -1,6 +1,6 @@
-import { PolygonData } from '../types/PolygonData';
+import { PolygonData } from '../../types/PolygonData';
 import { renderPolygon } from './renderPolygon';
-import { POLYGON_CONFIG } from '../config';
+import { POLYGON_CONFIG } from '../../config';
 
 export const renderSVG = (data: PolygonData) => {
   const svgNS = 'http://www.w3.org/2000/svg';

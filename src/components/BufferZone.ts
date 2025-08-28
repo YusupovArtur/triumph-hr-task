@@ -1,6 +1,9 @@
 import { Zone } from '../classes/Zone';
 import { PolygonItem } from './PolygonItem';
-import { BG_COLOR } from '../config';
+import { BG_COLOR, POLYGON_CONFIG } from '../config';
+import { PolygonDropEventData } from '../types/PolygonDropEventData';
+import { PolygonDragEventData } from '../types/PolygonDragEventData';
+import { shiftIndexes } from '../helpers/shiftIndexes';
 
 /**
  * Template for the BufferZone web component, defining styles and structure.
@@ -70,12 +73,16 @@ export class BufferZone extends Zone {
    */
   constructor() {
     super();
+
     this.dataSource = 'buffer-zone';
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.appendChild(tpl.content.cloneNode(true));
     this._container = shadow.querySelector('.container')!;
+  }
 
+  connectedCallback() {
     this.setDragAndDropHandler();
+    this.addEventListener('on-polygon-drop', this.onPolygonDrop);
   }
 
   /**
@@ -92,6 +99,39 @@ export class BufferZone extends Zone {
       this._container.appendChild(item);
     });
   }
+
+  private onPolygonDrop = (event: CustomEvent<PolygonDropEventData>) => {
+    event.stopPropagation();
+    if (event.detail.dataSource !== this.dataSource) {
+      this.data.push(event.detail.data);
+      this.dispatchEvent(
+        new CustomEvent<PolygonDragEventData>('polygon-moved', {
+          detail: event.detail,
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }
+
+    const dragStartId = event.detail.data.id;
+    const dropId = event.detail.dropId;
+
+    const index1 = this.data.findIndex((data) => data.id === dragStartId);
+    const index2 = this.data.findIndex((data) => data.id === dropId);
+
+    if (index1 !== -1 && this.data[index1]) {
+      this.data[index1].strokeWidth = POLYGON_CONFIG.strokeWidth;
+    }
+
+    if (index2 !== -1 && this.data[index2]) {
+      this.data[index2].strokeWidth = POLYGON_CONFIG.strokeWidth;
+    }
+
+    if (index1 !== -1 && index2 !== -1) {
+      this.data = shiftIndexes(this.data, index1, index2);
+      this.render();
+    }
+  };
 }
 
 /**

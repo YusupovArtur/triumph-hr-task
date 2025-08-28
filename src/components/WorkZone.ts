@@ -120,17 +120,19 @@ export class WorkZone extends Zone {
     const svgRect = this._svg.getBoundingClientRect();
     this._svg.setAttribute('viewBox', `0 0 ${svgRect.width} ${svgRect.height}`);
 
-    this._svg.addEventListener('wheel', this.handleWheel.bind(this));
-    this._svg.addEventListener('mousedown', this.handleMouseDown.bind(this));
-    this._svg.addEventListener('mousemove', this.handleMouseMove.bind(this));
-    this._svg.addEventListener('mouseup', this.handleMouseUp.bind(this));
-    this._svg.addEventListener('mouseleave', this.handleMouseUp.bind(this));
+    this._svg.addEventListener('wheel', this.handleWheel);
+    this._svg.addEventListener('mousedown', this.handleMouseDown);
+    this._svg.addEventListener('mousemove', this.handleMouseMove);
+    this._svg.addEventListener('mouseup', this.handleMouseUp);
+    this._svg.addEventListener('mouseleave', this.handleMouseUp);
 
     this._axesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     this._axesGroup.setAttribute('id', 'axes');
     this._svg.appendChild(this._axesGroup);
     this.updateViewBox();
+  }
 
+  connectedCallback() {
     this.setDragAndDropHandler();
     this.addEventListener('drop', (event) => {
       event.preventDefault();
@@ -203,7 +205,7 @@ export class WorkZone extends Zone {
 
       const item = document.createElement('polygon-item') as PolygonItem;
       item.data = data;
-      item.dragstartCallback = this.handleMouseUp.bind(this);
+      item.dragstartCallback = this.handleMouseUp;
       item.dataSource = this.dataSource;
 
       foreignObject.appendChild(item);
@@ -231,14 +233,14 @@ export class WorkZone extends Zone {
    * @param event - The WheelEvent triggered by mouse wheel scrolling.
    * @private
    */
-  private handleWheel(event: WheelEvent) {
+  private handleWheel = (event: WheelEvent) => {
     event.preventDefault();
     const dZoom = -this.scale * 0.075 * Math.sign(event.deltaY);
     this.scale = clamp(this.scale - dZoom, SVG_CONFIG.minScale, 1);
 
     this.offset = getSVGOffset(this._svg.getBoundingClientRect(), this.offset.x, this.offset.y, this.scale, 0, 0);
     this.updateViewBox();
-  }
+  };
 
   /**
    * Handles mouse move events to pan the SVG viewBox during dragging.
@@ -246,8 +248,9 @@ export class WorkZone extends Zone {
    * @param event - The MouseEvent triggered by mouse movement.
    * @private
    */
-  private handleMouseMove(event: MouseEvent) {
+  private handleMouseMove = (event: MouseEvent) => {
     if (!this.isDragging) return;
+    if (this.lastMouseCoords === null) return;
 
     const dx = event.clientX - this.lastMouseCoords.x;
     const dy = event.clientY - this.lastMouseCoords.y;
@@ -255,7 +258,7 @@ export class WorkZone extends Zone {
     this.updateViewBox();
 
     this.lastMouseCoords = { x: event.clientX, y: event.clientY };
-  }
+  };
 
   /**
    * Handles mouse down events to initiate panning.
@@ -264,21 +267,21 @@ export class WorkZone extends Zone {
    * @param event - The MouseEvent triggered by pressing the mouse button.
    * @private
    */
-  private handleMouseDown(event: MouseEvent) {
+  private handleMouseDown = (event: MouseEvent) => {
     this.isDragging = true;
     this.lastMouseCoords = { x: event.clientX, y: event.clientY };
     this._svg.style.cursor = 'grabbing';
-  }
+  };
 
   /**
    * Handles mouse up and mouse leave events to end panning.
    * Resets the dragging state and restores the default cursor.
    * @private
    */
-  private handleMouseUp() {
+  private handleMouseUp = () => {
     this.isDragging = false;
     this._svg.style.cursor = 'move';
-  }
+  };
 
   /**
    * Handles touchmove events for panning (single touch) and pinch-to-zoom (multitouch).
@@ -303,9 +306,9 @@ export class WorkZone extends Zone {
       this.offset = newOffsetAndScale.offset;
       this.updateViewBox();
     }
-    if (event.touches.length === 1) {
+    if (event.touches.length === 1 && event.touches[0]) {
       this.lastTouchCoords = getTouchCoords(event.touches[0]);
-    } else if (event.touches.length === 2) {
+    } else if (event.touches.length === 2 && event.touches[0] && event.touches[1]) {
       this.lastTouchCoords1 = getTouchCoords(event.touches[0]);
       this.lastTouchCoords2 = getTouchCoords(event.touches[1]);
     }

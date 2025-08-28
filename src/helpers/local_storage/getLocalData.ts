@@ -10,7 +10,7 @@ const defaultData: LocalStorageData = {
 };
 
 export function getLocalData(): LocalStorageData {
-  const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ITEM)) as unknown;
+  const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ITEM) ?? '') as unknown;
 
   if (isLocalStorageData(saved)) {
     return saved;

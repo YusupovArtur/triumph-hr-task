@@ -2,6 +2,8 @@ import { PolygonData } from '../types/PolygonData';
 import { DataSource } from '../types/DataSource';
 import { renderSVG } from '../helpers/render/renderSVG';
 import { POLYGON_CONFIG } from '../config';
+import { PolygonDragEventData } from '../types/PolygonDragEventData';
+import { PolygonDropEventData } from '../types/PolygonDropEventData';
 
 /**
  * Template for the PolygonItem web component, defining styles and structure.
@@ -89,52 +91,26 @@ export class PolygonItem extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.appendChild(tpl.content.cloneNode(true));
     this._wrap = shadow.querySelector('.wrap')!;
+  }
 
-    // Handle dragstart event for drag-and-drop
-    this._wrap.addEventListener('dragstart', (event: DragEvent) => {
-      if (this.dragstartCallback) {
-        this.dragstartCallback();
-      }
+  connectedCallback() {
+    this.addEventListener('dragstart', this.onDragStart);
+    this.addEventListener('drop', this.onDrop);
+    this.addEventListener('dragend', this.onDragEnd);
+    this.addEventListener('mousemove', this.onMouseMoveAndDown);
+    this.addEventListener('mousedown', this.onMouseMoveAndDown);
+    this.addEventListener('mouseenter', this.onMouseEnter);
+    this.addEventListener('mouseleave', this.onMouseLeave);
+  }
 
-      if (!this._data) return;
-      event.dataTransfer?.setData(
-        'text/plain',
-        JSON.stringify({
-          data: this._data,
-          dataSource: this.dataSource,
-        }),
-      );
-      event.dataTransfer!.effectAllowed = 'move';
-    });
-
-    this._wrap.addEventListener('mousemove', (event: MouseEvent) => {
-      event.stopPropagation();
-    });
-
-    this._wrap.addEventListener('mousedown', (event: MouseEvent) => {
-      event.stopPropagation();
-    });
-
-    this._wrap.addEventListener('mouseenter', () => {
-      if (this._data.strokeWidth !== POLYGON_CONFIG.strokeWidthActive) {
-        this._data.strokeWidth = POLYGON_CONFIG.strokeWidthActive;
-        this.render();
-      }
-    });
-
-    this._wrap.addEventListener('mouseleave', () => {
-      if (this._data.strokeWidth !== POLYGON_CONFIG.strokeWidth) {
-        this._data.strokeWidth = POLYGON_CONFIG.strokeWidth;
-        this.render();
-      }
-    });
-
-    this.addEventListener('dragend', () => {
-      if (this._data.strokeWidth !== POLYGON_CONFIG.strokeWidth) {
-        this._data.strokeWidth = POLYGON_CONFIG.strokeWidth;
-        this.render();
-      }
-    });
+  disconnectedCallback() {
+    this.removeEventListener('dragstart', this.onDragStart);
+    this.removeEventListener('drop', this.onDrop);
+    this.removeEventListener('dragend', this.onDragEnd);
+    this.removeEventListener('mousemove', this.onMouseMoveAndDown);
+    this.removeEventListener('mousedown', this.onMouseMoveAndDown);
+    this.removeEventListener('mouseenter', this.onMouseEnter);
+    this.removeEventListener('mouseleave', this.onMouseLeave);
   }
 
   /**
@@ -167,6 +143,69 @@ export class PolygonItem extends HTMLElement {
 
     this._wrap.appendChild(renderSVG(this._data));
   }
+
+  private onDragStart = (event: DragEvent) => {
+    if (this.dragstartCallback) {
+      this.dragstartCallback();
+    }
+
+    if (!this._data) return;
+    const dataTransfer: PolygonDragEventData = {
+      data: this._data,
+      dataSource: this.dataSource,
+    };
+    event.dataTransfer?.setData('text/plain', JSON.stringify(dataTransfer));
+    event.dataTransfer!.effectAllowed = 'move';
+  };
+
+  private onDrop = (event: DragEvent) => {
+    event.preventDefault();
+    // event.stopPropagation();
+
+    if (!this._data) return;
+    const json = event.dataTransfer?.getData('text/plain');
+    if (!json) return;
+
+    try {
+      const dataTransfer: PolygonDragEventData = JSON.parse(json);
+      const dropData: PolygonDropEventData = { ...dataTransfer, dropId: this._data.id };
+
+      this.dispatchEvent(
+        new CustomEvent<PolygonDropEventData>('on-polygon-drop', {
+          detail: dropData,
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    } catch (error) {
+      console.error('Drop event error', error);
+    }
+  };
+
+  private onDragEnd = () => {
+    if (this._data && this._data.strokeWidth !== POLYGON_CONFIG.strokeWidth) {
+      this._data.strokeWidth = POLYGON_CONFIG.strokeWidth;
+      this.render();
+    }
+  };
+
+  private onMouseMoveAndDown = (event: MouseEvent) => {
+    event.stopPropagation();
+  };
+
+  private onMouseEnter = () => {
+    if (this._data && this._data.strokeWidth !== POLYGON_CONFIG.strokeWidthActive) {
+      this._data.strokeWidth = POLYGON_CONFIG.strokeWidthActive;
+      this.render();
+    }
+  };
+
+  private onMouseLeave = () => {
+    if (this._data && this._data.strokeWidth !== POLYGON_CONFIG.strokeWidth) {
+      this._data.strokeWidth = POLYGON_CONFIG.strokeWidth;
+      this.render();
+    }
+  };
 }
 
 /**

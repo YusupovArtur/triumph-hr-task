@@ -30,8 +30,10 @@ export class Zone extends HTMLElement {
               composed: true,
             }),
           );
-
-          this._data.push({ ...dropData.data, strokeWidth: POLYGON_CONFIG.strokeWidth });
+          const index = this._data.findIndex((data) => data.id === dropData.data.id);
+          if (index === -1) {
+            this._data.push({ ...dropData.data, strokeWidth: POLYGON_CONFIG.strokeWidth });
+          }
           setTimeout(() => {
             this.render();
           });

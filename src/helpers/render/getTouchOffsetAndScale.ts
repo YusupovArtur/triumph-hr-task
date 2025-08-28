@@ -20,13 +20,13 @@ export const getTouchOffsetAndScale = (
   event.preventDefault();
   event.stopPropagation();
 
-  if (event.touches.length === 1 && touch !== null) {
+  if (event.touches.length === 1 && touch !== null && event.touches[0]) {
     const touchVector = getVector(touch, getTouchCoords(event.touches[0]));
     const newOffset = getSVGOffset(SVGRect, offset.x, offset.y, scale, touchVector.x, touchVector.y);
     return { offset: newOffset, scale: scale };
   }
 
-  if (event.touches.length === 2 && touch1 !== null && touch2 !== null) {
+  if (event.touches.length === 2 && touch1 !== null && touch2 !== null && event.touches[0] && event.touches[1]) {
     const touchVector1 = getVector(touch1, getTouchCoords(event.touches[0]));
     const touchVector2 = getVector(touch2, getTouchCoords(event.touches[1]));
 

@@ -8,7 +8,9 @@
     "allowJs": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true
   },
   "ts-node": {
     "compilerOptions": {

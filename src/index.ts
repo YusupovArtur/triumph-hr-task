@@ -8,11 +8,12 @@ import './icons/IconClear';
 import './style/style.css';
 import { BufferZone } from './components/BufferZone';
 import { WorkZone } from './components/WorkZone';
-import { PolygonDragEventData } from './types/PolygonDragEventData';
 import { getPolygonDataArray } from './helpers/getPolygonDataArray';
 import { setLocalData } from './helpers/local_storage/setLocalData';
 import { getLocalData } from './helpers/local_storage/getLocalData';
 import { LocalStorageData } from './types/LocalStorageData';
+import { isLocalStorageData } from './helpers/local_storage/isLocalStorageData';
+import { LOCAL_STORAGE_ITEM } from './config';
 
 let isChanged = false;
 const bufferZone = document.querySelector('buffer-zone') as BufferZone;
@@ -21,7 +22,7 @@ const createButton = document.getElementById('create-btn') as HTMLButtonElement 
 const saveButton = document.getElementById('save-btn') as HTMLButtonElement | null;
 const clearButton = document.getElementById('clear-btn') as HTMLButtonElement | null;
 
-workZone.addEventListener('polygon-moved', (event: CustomEvent<PolygonDragEventData>) => {
+workZone.addEventListener('polygon-moved', (event) => {
   bufferZone.dispatchData({ type: 'remove', payload: event.detail.data });
   isChanged = true;
   updateButtonsState();
@@ -30,7 +31,7 @@ workZone.addEventListener('polygon-moved-inner', () => {
   isChanged = true;
   updateButtonsState();
 });
-bufferZone.addEventListener('polygon-moved', (event: CustomEvent<PolygonDragEventData>) => {
+bufferZone.addEventListener('polygon-moved', (event) => {
   workZone.dispatchData({ type: 'remove', payload: event.detail.data });
   isChanged = true;
   updateButtonsState();
@@ -68,11 +69,10 @@ const clearHandler = () => {
 };
 
 const updateButtonsState = () => {
-  // const isSaved = isLocalStorageData(JSON.parse(localStorage.getItem(LOCAL_STORAGE_ITEM)));
-  const isSaved = true;
+  const isSaved = isLocalStorageData(JSON.parse(localStorage.getItem(LOCAL_STORAGE_ITEM) ?? ''));
   const isEmpty = !(bufferZone.data.length > 0 || workZone.data.length > 0);
   if (clearButton) clearButton.disabled = !isSaved || isEmpty;
-  // if (saveButton) saveButton.disabled = !isChanged;
+  if (saveButton) saveButton.disabled = !isChanged;
 };
 
 window.addEventListener('DOMContentLoaded', () => {

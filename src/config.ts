@@ -1,4 +1,18 @@
-export const POLYGON_CONFIG = {
+type PolygonConfig = {
+  viewBox: {
+    width: number;
+    height: number;
+  };
+  polygonSidesRange: [number, number];
+  fill: string;
+  stroke: string;
+  strokeWidth: number;
+  strokeWidthActive: number;
+  paddingShare: number;
+  padding: number;
+};
+
+export const POLYGON_CONFIG: PolygonConfig = {
   viewBox: {
     width: 90,
     height: 90,

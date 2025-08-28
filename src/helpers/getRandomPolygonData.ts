@@ -13,6 +13,7 @@ export function getRandomPolygonData(
   fill = POLYGON_CONFIG.fill,
   stroke = POLYGON_CONFIG.stroke,
 ): PolygonData {
+  // @ts-ignore
   const n = randomInt(polygonSidesRange[0], polygonSidesRange[1]);
   const maxLength = Math.min(viewBox.width, viewBox.height) / 2;
 

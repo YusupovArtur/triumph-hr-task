@@ -9,6 +9,7 @@ import { clamp } from '../helpers/clamp';
 import { PolygonDragEventData } from '../types/PolygonDragEventData';
 import { Coords } from '../types/Coords';
 import { SVG_CONFIG, POLYGON_CONFIG, BG_COLOR } from '../config';
+import { getDeviceType } from '../helpers/getDeviceType';
 
 /**
  * Template for the WorkZone web component, defining styles and structure.
@@ -50,7 +51,7 @@ tpl.innerHTML = `
  * ```
  * ```typescript
  * const workZone = document.querySelector('work-zone') as WorkZone;
- * workZone._data = [
+ * workZone.data = [
  *   { points: [[10, 10], [20, 20], [10, 20]], fill: 'lightblue', stroke: 'blue' },
  *   { points: [[30, 30], [40, 40], [30, 40]], fill: 'lightgreen', stroke: 'green' }
  * ];
@@ -140,20 +141,31 @@ export class WorkZone extends Zone {
       if (!json) return;
 
       try {
-        const dropData: PolygonDragEventData = JSON.parse(json);
+        const dataTransfer: PolygonDragEventData = JSON.parse(json);
         const svgRect = this._svg.getBoundingClientRect();
 
         let x = event.clientX - svgRect.left;
         let y = event.clientY - svgRect.top;
         const rescaledCoords = rescaleCoordinates(x, y, this._svg);
-        rescaledCoords.x -= (dropData.data.sizes.width + POLYGON_CONFIG.padding) / 2;
-        rescaledCoords.y -= (dropData.data.sizes.height + POLYGON_CONFIG.padding) / 2;
-        x = clamp(rescaledCoords.x, 0, svgRect.width - (dropData.data.sizes.width + POLYGON_CONFIG.padding));
-        y = clamp(rescaledCoords.y, 0, svgRect.height - (dropData.data.sizes.height + POLYGON_CONFIG.padding));
-        this._polygonsCoords[dropData.data.id] = { x, y };
+        const dx =
+          getDeviceType() === 'desktop'
+            ? dataTransfer.dragstartOffset.x * this.scale - (dataTransfer.data.sizes.width + POLYGON_CONFIG.padding) / 2
+            : 0;
+        const dy =
+          getDeviceType() === 'desktop'
+            ? dataTransfer.dragstartOffset.y * this.scale - (dataTransfer.data.sizes.height + POLYGON_CONFIG.padding) / 2
+            : 0;
+        rescaledCoords.x -= (dataTransfer.data.sizes.width + POLYGON_CONFIG.padding) / 2 + dx;
+        rescaledCoords.y -= (dataTransfer.data.sizes.height + POLYGON_CONFIG.padding) / 2 + dy;
+        x = clamp(rescaledCoords.x, 0, svgRect.width - (dataTransfer.data.sizes.width + POLYGON_CONFIG.padding));
+        y = clamp(rescaledCoords.y, 0, svgRect.height - (dataTransfer.data.sizes.height + POLYGON_CONFIG.padding));
+        this._polygonsCoords[dataTransfer.data.id] = { x, y };
 
-        if (dropData.dataSource === this.dataSource) {
-          this.data.sort((a, b) => (a.id === dropData.data.id ? 1 : b.id === dropData.data.id ? -1 : 0));
+        if (dataTransfer.dataSource === this.dataSource) {
+          this.data.sort((a, b) => (a.id === dataTransfer.data.id ? 1 : b.id === dataTransfer.data.id ? -1 : 0));
+          this.data.forEach((dataItem) => {
+            dataItem.strokeWidth = POLYGON_CONFIG.strokeWidth;
+          });
           this.render();
           this.dispatchEvent(new CustomEvent('polygon-moved-inner'));
         }

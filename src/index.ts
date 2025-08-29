@@ -13,7 +13,7 @@ import { setLocalData } from './helpers/local_storage/setLocalData';
 import { getLocalData } from './helpers/local_storage/getLocalData';
 import { LocalStorageData } from './types/LocalStorageData';
 import { isLocalStorageData } from './helpers/local_storage/isLocalStorageData';
-import { LOCAL_STORAGE_ITEM } from './config';
+import { DEFAULT_LOCAL_STORAGE_JSON_DATA, LOCAL_STORAGE_ITEM } from './config';
 
 let isChanged = false;
 const bufferZone = document.querySelector('buffer-zone') as BufferZone;
@@ -69,7 +69,7 @@ const clearHandler = () => {
 };
 
 const updateButtonsState = () => {
-  const isSaved = isLocalStorageData(JSON.parse(localStorage.getItem(LOCAL_STORAGE_ITEM) ?? ''));
+  const isSaved = isLocalStorageData(JSON.parse(localStorage.getItem(LOCAL_STORAGE_ITEM) ?? DEFAULT_LOCAL_STORAGE_JSON_DATA));
   const isEmpty = !(bufferZone.data.length > 0 || workZone.data.length > 0);
   if (clearButton) clearButton.disabled = !isSaved || isEmpty;
   if (saveButton) saveButton.disabled = !isChanged;

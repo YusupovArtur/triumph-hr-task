@@ -1,5 +1,5 @@
 import { LocalStorageData } from '../../types/LocalStorageData';
-import { LOCAL_STORAGE_ITEM } from '../../config';
+import { DEFAULT_LOCAL_STORAGE_JSON_DATA, LOCAL_STORAGE_ITEM } from '../../config';
 import { isLocalStorageData } from './isLocalStorageData';
 import { getPolygonDataArray } from '../getPolygonDataArray';
 
@@ -10,7 +10,7 @@ const defaultData: LocalStorageData = {
 };
 
 export function getLocalData(): LocalStorageData {
-  const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ITEM) ?? '') as unknown;
+  const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_ITEM) ?? DEFAULT_LOCAL_STORAGE_JSON_DATA) as unknown;
 
   if (isLocalStorageData(saved)) {
     return saved;

@@ -1,7 +1,6 @@
 import { Zone } from '../classes/Zone';
 import { PolygonItem } from './PolygonItem';
 import { BG_COLOR, POLYGON_CONFIG } from '../config';
-import { PolygonDropEventData } from '../types/PolygonDropEventData';
 import { PolygonDragEventData } from '../types/PolygonDragEventData';
 import { shiftIndexes } from '../helpers/shiftIndexes';
 
@@ -54,7 +53,7 @@ tpl.innerHTML = `
  * ```
  * ```typescript
  * const bufferZone = document.querySelector('buffer-zone') as BufferZone;
- * bufferZone._data = [
+ * bufferZone.data = [
  *   { points: [[10, 10], [20, 20], [10, 20]], fill: 'lightblue', stroke: 'blue' },
  *   { points: [[30, 30], [40, 40], [30, 40]], fill: 'lightgreen', stroke: 'green' }
  * ];
@@ -92,7 +91,7 @@ export class BufferZone extends Zone {
    */
   protected render() {
     this._container.innerHTML = '';
-    this._data.forEach((polygonData) => {
+    this.data.forEach((polygonData) => {
       const item = document.createElement('polygon-item') as PolygonItem;
       item.data = polygonData;
       item.dataSource = this.dataSource;
@@ -100,7 +99,8 @@ export class BufferZone extends Zone {
     });
   }
 
-  private onPolygonDrop = (event: CustomEvent<PolygonDropEventData>) => {
+  private onPolygonDrop = (event: CustomEvent<PolygonDragEventData>) => {
+    event.preventDefault();
     event.stopPropagation();
     if (event.detail.dataSource !== this.dataSource) {
       this.data.push(event.detail.data);
@@ -119,16 +119,11 @@ export class BufferZone extends Zone {
     const index1 = this.data.findIndex((data) => data.id === dragStartId);
     const index2 = this.data.findIndex((data) => data.id === dropId);
 
-    if (index1 !== -1 && this.data[index1]) {
-      this.data[index1].strokeWidth = POLYGON_CONFIG.strokeWidth;
-    }
-
-    if (index2 !== -1 && this.data[index2]) {
-      this.data[index2].strokeWidth = POLYGON_CONFIG.strokeWidth;
-    }
-
     if (index1 !== -1 && index2 !== -1) {
       this.data = shiftIndexes(this.data, index1, index2);
+      this.data.forEach((dataItem) => {
+        dataItem.strokeWidth = POLYGON_CONFIG.strokeWidth;
+      });
       this.render();
     }
   };

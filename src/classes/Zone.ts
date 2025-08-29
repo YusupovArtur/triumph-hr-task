@@ -34,6 +34,9 @@ export class Zone extends HTMLElement {
           if (index === -1) {
             this._data.push({ ...dropData.data, strokeWidth: POLYGON_CONFIG.strokeWidth });
           }
+          this._data.forEach((dataItem) => {
+            dataItem.strokeWidth = POLYGON_CONFIG.strokeWidth;
+          });
           setTimeout(() => {
             this.render();
           });

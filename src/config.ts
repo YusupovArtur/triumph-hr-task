@@ -1,3 +1,5 @@
+import { LocalStorageData } from './types/LocalStorageData';
+
 type PolygonConfig = {
   viewBox: {
     width: number;
@@ -45,5 +47,13 @@ export const AXES_CONFIG = {
   step: 50,
   strokeColor: '#ccc',
 };
+
+const defaultLocalData: LocalStorageData = {
+  bufferZonePolygons: [],
+  workZonePolygons: [],
+  polygonsCoords: {},
+};
+export const DEFAULT_LOCAL_STORAGE_JSON_DATA = JSON.stringify(defaultLocalData);
+console.log(DEFAULT_LOCAL_STORAGE_JSON_DATA);
 
 export const LOCAL_STORAGE_ITEM = 'data';

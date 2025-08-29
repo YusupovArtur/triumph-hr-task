@@ -3,7 +3,6 @@ import { DataSource } from '../types/DataSource';
 import { renderSVG } from '../helpers/render/renderSVG';
 import { POLYGON_CONFIG } from '../config';
 import { PolygonDragEventData } from '../types/PolygonDragEventData';
-import { PolygonDropEventData } from '../types/PolygonDropEventData';
 
 /**
  * Template for the PolygonItem web component, defining styles and structure.
@@ -96,7 +95,6 @@ export class PolygonItem extends HTMLElement {
   connectedCallback() {
     this.addEventListener('dragstart', this.onDragStart);
     this.addEventListener('drop', this.onDrop);
-    this.addEventListener('dragend', this.onDragEnd);
     this.addEventListener('mousemove', this.onMouseMoveAndDown);
     this.addEventListener('mousedown', this.onMouseMoveAndDown);
     this.addEventListener('mouseenter', this.onMouseEnter);
@@ -106,7 +104,6 @@ export class PolygonItem extends HTMLElement {
   disconnectedCallback() {
     this.removeEventListener('dragstart', this.onDragStart);
     this.removeEventListener('drop', this.onDrop);
-    this.removeEventListener('dragend', this.onDragEnd);
     this.removeEventListener('mousemove', this.onMouseMoveAndDown);
     this.removeEventListener('mousedown', this.onMouseMoveAndDown);
     this.removeEventListener('mouseenter', this.onMouseEnter);
@@ -150,9 +147,16 @@ export class PolygonItem extends HTMLElement {
     }
 
     if (!this._data) return;
+
+    const rect = this._wrap.getBoundingClientRect();
     const dataTransfer: PolygonDragEventData = {
       data: this._data,
       dataSource: this.dataSource,
+      dropId: null,
+      dragstartOffset: {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      },
     };
     event.dataTransfer?.setData('text/plain', JSON.stringify(dataTransfer));
     event.dataTransfer!.effectAllowed = 'move';
@@ -160,32 +164,23 @@ export class PolygonItem extends HTMLElement {
 
   private onDrop = (event: DragEvent) => {
     event.preventDefault();
-    // event.stopPropagation();
 
     if (!this._data) return;
     const json = event.dataTransfer?.getData('text/plain');
     if (!json) return;
 
     try {
-      const dataTransfer: PolygonDragEventData = JSON.parse(json);
-      const dropData: PolygonDropEventData = { ...dataTransfer, dropId: this._data.id };
+      const dataTransfer: PolygonDragEventData = { ...JSON.parse(json), dropId: this._data.id };
 
       this.dispatchEvent(
-        new CustomEvent<PolygonDropEventData>('on-polygon-drop', {
-          detail: dropData,
+        new CustomEvent<PolygonDragEventData>('on-polygon-drop', {
+          detail: dataTransfer,
           bubbles: true,
           composed: true,
         }),
       );
     } catch (error) {
       console.error('Drop event error', error);
-    }
-  };
-
-  private onDragEnd = () => {
-    if (this._data && this._data.strokeWidth !== POLYGON_CONFIG.strokeWidth) {
-      this._data.strokeWidth = POLYGON_CONFIG.strokeWidth;
-      this.render();
     }
   };
 

@@ -54,6 +54,5 @@ const defaultLocalData: LocalStorageData = {
   polygonsCoords: {},
 };
 export const DEFAULT_LOCAL_STORAGE_JSON_DATA = JSON.stringify(defaultLocalData);
-console.log(DEFAULT_LOCAL_STORAGE_JSON_DATA);
 
 export const LOCAL_STORAGE_ITEM = 'data';

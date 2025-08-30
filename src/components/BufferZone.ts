@@ -91,7 +91,7 @@ export class BufferZone extends Zone {
    */
   protected render() {
     this._container.innerHTML = '';
-    this.data.forEach((polygonData) => {
+    this._data.forEach((polygonData) => {
       const item = document.createElement('polygon-item') as PolygonItem;
       item.data = polygonData;
       item.dataSource = this.dataSource;
@@ -103,7 +103,7 @@ export class BufferZone extends Zone {
     event.preventDefault();
     event.stopPropagation();
     if (event.detail.dataSource !== this.dataSource) {
-      this.data.push(event.detail.data);
+      this._data.push(event.detail.data);
       this.dispatchEvent(
         new CustomEvent<PolygonDragEventData>('polygon-moved', {
           detail: event.detail,
@@ -116,12 +116,12 @@ export class BufferZone extends Zone {
     const dragStartId = event.detail.data.id;
     const dropId = event.detail.dropId;
 
-    const index1 = this.data.findIndex((data) => data.id === dragStartId);
-    const index2 = this.data.findIndex((data) => data.id === dropId);
+    const index1 = this._data.findIndex((data) => data.id === dragStartId);
+    const index2 = this._data.findIndex((data) => data.id === dropId);
 
     if (index1 !== -1 && index2 !== -1) {
-      this.data = shiftIndexes(this.data, index1, index2);
-      this.data.forEach((dataItem) => {
+      this._data = shiftIndexes(this.data, index1, index2);
+      this._data.forEach((dataItem) => {
         dataItem.strokeWidth = POLYGON_CONFIG.strokeWidth;
       });
       this.render();

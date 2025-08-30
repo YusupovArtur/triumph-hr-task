@@ -162,8 +162,8 @@ export class WorkZone extends Zone {
         this._polygonsCoords[dataTransfer.data.id] = { x, y };
 
         if (dataTransfer.dataSource === this.dataSource) {
-          this.data.sort((a, b) => (a.id === dataTransfer.data.id ? 1 : b.id === dataTransfer.data.id ? -1 : 0));
-          this.data.forEach((dataItem) => {
+          this._data.sort((a, b) => (a.id === dataTransfer.data.id ? 1 : b.id === dataTransfer.data.id ? -1 : 0));
+          this._data.forEach((dataItem) => {
             dataItem.strokeWidth = POLYGON_CONFIG.strokeWidth;
           });
           this.render();

@@ -94,7 +94,6 @@ export class PolygonItem extends HTMLElement {
 
   connectedCallback() {
     this.addEventListener('dragstart', this.onDragStart);
-    this.addEventListener('drop', this.onDrop);
     this.addEventListener('mousemove', this.onMouseMoveAndDown);
     this.addEventListener('mousedown', this.onMouseMoveAndDown);
     this.addEventListener('mouseenter', this.onMouseEnter);
@@ -162,8 +161,13 @@ export class PolygonItem extends HTMLElement {
     event.dataTransfer!.effectAllowed = 'move';
   };
 
+  public setDropEventListener() {
+    this.addEventListener('drop', this.onDrop);
+  }
+
   private onDrop = (event: DragEvent) => {
     event.preventDefault();
+    event.stopPropagation();
 
     if (!this._data) return;
     const json = event.dataTransfer?.getData('text/plain');

@@ -82,6 +82,7 @@ export class BufferZone extends Zone {
   connectedCallback() {
     this.setDragAndDropHandler();
     this.addEventListener('on-polygon-drop', this.onPolygonDrop);
+    this.addEventListener('drop', this.onDrop);
   }
 
   /**
@@ -94,10 +95,32 @@ export class BufferZone extends Zone {
     this._data.forEach((polygonData) => {
       const item = document.createElement('polygon-item') as PolygonItem;
       item.data = polygonData;
+      item.setDropEventListener();
       item.dataSource = this.dataSource;
       this._container.appendChild(item);
     });
   }
+
+  private onDrop = (event: DragEvent) => {
+    event.preventDefault();
+
+    const json = event.dataTransfer?.getData('text/plain');
+    if (!json) return;
+
+    try {
+      const dataTransfer = JSON.parse(json) as PolygonDragEventData;
+
+      if (dataTransfer.dataSource === this.dataSource) {
+        this._data.sort((a, b) => (a.id === dataTransfer.data.id ? 1 : b.id === dataTransfer.data.id ? -1 : 0));
+        this._data.forEach((dataItem) => {
+          dataItem.strokeWidth = POLYGON_CONFIG.strokeWidth;
+        });
+        this.render();
+      }
+    } catch (error) {
+      console.error('Drop event error', error);
+    }
+  };
 
   private onPolygonDrop = (event: CustomEvent<PolygonDragEventData>) => {
     event.preventDefault();

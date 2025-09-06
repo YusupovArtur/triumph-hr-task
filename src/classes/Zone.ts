@@ -20,20 +20,17 @@ export class Zone extends HTMLElement {
       if (!json) return;
 
       try {
-        const dropData: PolygonDragEventData = JSON.parse(json);
+        const dataTransfer: PolygonDragEventData = JSON.parse(json);
 
-        if (dropData.dataSource !== this.dataSource) {
+        if (dataTransfer.dataSource !== this.dataSource) {
           this.dispatchEvent(
             new CustomEvent<PolygonDragEventData>('polygon-moved', {
-              detail: dropData,
+              detail: dataTransfer,
               bubbles: true,
               composed: true,
             }),
           );
-          const index = this._data.findIndex((data) => data.id === dropData.data.id);
-          if (index === -1) {
-            this._data.push({ ...dropData.data, strokeWidth: POLYGON_CONFIG.strokeWidth });
-          }
+          this._data.push({ ...dataTransfer.data, strokeWidth: POLYGON_CONFIG.strokeWidth });
           this._data.forEach((dataItem) => {
             dataItem.strokeWidth = POLYGON_CONFIG.strokeWidth;
           });

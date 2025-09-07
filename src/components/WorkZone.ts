@@ -10,6 +10,8 @@ import { PolygonDragEventData } from '../types/PolygonDragEventData';
 import { Coords } from '../types/Coords';
 import { SVG_CONFIG, POLYGON_CONFIG, BG_COLOR } from '../config';
 import { getDeviceType } from '../helpers/getDeviceType';
+import { PolygonId } from '../types/PolygonId';
+import { splitToEndData } from '../helpers/splitToEndData';
 
 /**
  * Template for the WorkZone web component, defining styles and structure.
@@ -63,7 +65,7 @@ export class WorkZone extends Zone {
    * Used to position PolygonItem components in the SVG.
    * @private
    */
-  private _polygonsCoords: Record<number, Coords> = {};
+  private _polygonsCoords: Record<PolygonId, Coords> = {};
 
   /**
    * The group (<g>) element inside the SVG that contains axes/grid rendering.
@@ -162,7 +164,7 @@ export class WorkZone extends Zone {
         this._polygonsCoords[dataTransfer.data.id] = { x, y };
 
         if (dataTransfer.dataSource === this.dataSource) {
-          this._data.sort((a, b) => (a.id === dataTransfer.data.id ? 1 : b.id === dataTransfer.data.id ? -1 : 0));
+          this._data = splitToEndData(this._data, dataTransfer.data.id);
           this._data.forEach((dataItem) => {
             dataItem.strokeWidth = POLYGON_CONFIG.strokeWidth;
           });

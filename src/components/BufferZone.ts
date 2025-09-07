@@ -3,6 +3,7 @@ import { PolygonItem } from './PolygonItem';
 import { BG_COLOR, POLYGON_CONFIG } from '../config';
 import { PolygonDragEventData } from '../types/PolygonDragEventData';
 import { shiftIndexes } from '../helpers/shiftIndexes';
+import { splitToEndData } from '../helpers/splitToEndData';
 
 /**
  * Template for the BufferZone web component, defining styles and structure.
@@ -111,7 +112,7 @@ export class BufferZone extends Zone {
       const dataTransfer = JSON.parse(json) as PolygonDragEventData;
 
       if (dataTransfer.dataSource === this.dataSource) {
-        this._data.sort((a, b) => (a.id === dataTransfer.data.id ? 1 : b.id === dataTransfer.data.id ? -1 : 0));
+        this._data = splitToEndData(this._data, dataTransfer.data.id);
         this._data.forEach((dataItem) => {
           dataItem.strokeWidth = POLYGON_CONFIG.strokeWidth;
         });

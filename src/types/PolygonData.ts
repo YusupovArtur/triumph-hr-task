@@ -1,7 +1,8 @@
 import { Coords } from './Coords';
+import { PolygonId } from './PolygonId';
 
 export interface PolygonData {
-  id: number;
+  id: PolygonId;
   points: Coords[];
   fill: string;
   stroke: string;

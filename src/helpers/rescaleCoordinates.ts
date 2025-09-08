@@ -1,4 +1,6 @@
-export const rescaleCoordinates = (x: number, y: number, svg: SVGSVGElement) => {
+import { Coords } from '../types/Coords';
+
+export const rescaleCoordinates = (x: number, y: number, svg: SVGSVGElement): Coords => {
   const rect = svg.getBoundingClientRect();
   const viewBox = svg.viewBox.baseVal;
   const minX = viewBox.x;

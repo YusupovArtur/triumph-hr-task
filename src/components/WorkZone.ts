@@ -149,14 +149,16 @@ export class WorkZone extends Zone {
         let x = event.clientX - svgRect.left;
         let y = event.clientY - svgRect.top;
         const rescaledCoords = rescaleCoordinates(x, y, this._svg);
+
+        const dragstartOffsetX =
+          dataTransfer.dataSource === 'work-zone' ? dataTransfer.dragstartOffset.x * this.scale : dataTransfer.dragstartOffset.x;
+        const dragstartOffsetY =
+          dataTransfer.dataSource === 'work-zone' ? dataTransfer.dragstartOffset.y * this.scale : dataTransfer.dragstartOffset.y;
         const dx =
-          getDeviceType() === 'desktop'
-            ? dataTransfer.dragstartOffset.x * this.scale - (dataTransfer.data.sizes.width + POLYGON_CONFIG.padding) / 2
-            : 0;
+          getDeviceType() === 'desktop' ? dragstartOffsetX - (dataTransfer.data.sizes.width + POLYGON_CONFIG.padding) / 2 : 0;
         const dy =
-          getDeviceType() === 'desktop'
-            ? dataTransfer.dragstartOffset.y * this.scale - (dataTransfer.data.sizes.height + POLYGON_CONFIG.padding) / 2
-            : 0;
+          getDeviceType() === 'desktop' ? dragstartOffsetY - (dataTransfer.data.sizes.height + POLYGON_CONFIG.padding) / 2 : 0;
+
         rescaledCoords.x -= (dataTransfer.data.sizes.width + POLYGON_CONFIG.padding) / 2 + dx;
         rescaledCoords.y -= (dataTransfer.data.sizes.height + POLYGON_CONFIG.padding) / 2 + dy;
         x = clamp(rescaledCoords.x, 0, svgRect.width - (dataTransfer.data.sizes.width + POLYGON_CONFIG.padding));
